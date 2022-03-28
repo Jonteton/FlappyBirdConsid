@@ -10,9 +10,9 @@ class Bird:
         screen.blit(self.img, (self.x, self.y))
 
     def up(self):
-        self.velocity -= 0.06
+        self.velocity -= 0.12
         self.y = self.y + self.velocity
 
     def falling(self):
-        self.velocity += 0.0004
+        self.velocity += 0.002
         self.y = self.y + self.velocity

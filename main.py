@@ -1,5 +1,7 @@
 import pygame
+import random
 from bird import Bird
+from pillar import Pillar
 
 pygame.init()
 
@@ -14,26 +16,52 @@ def main():
     bird_start_x = 200
     bird_start_y = 450
 
-    death_y = 595
+    floor_y = 595
+    pillar_start_x = bird_start_x + 250
+    pillar_start_y = 0
+    pillar_width = 50
+    pillar_height = 75
+    pillar_velocity_x = 0.4
+
+    pillar_gap_x = 250
+    pillar_gap_y = 100
 
     bird_img_loaded, background_img_loaded = load_resources()
+    screen_width = background_img_loaded.get_width() * 2
+
     bg_flipped = pygame.transform.flip(
         background_img_loaded, True, False)
-
     screen = pygame.display.set_mode(
-        [background_img_loaded.get_width() * 2, background_img_loaded.get_height()])
+        [screen_width, background_img_loaded.get_height()])
 
     bird = Bird(bird_start_x, bird_start_y, bird_img_loaded)
 
+    pillar = Pillar(pillar_start_x, pillar_start_y,
+                    pillar_width, pillar_height, pillar_velocity_x)
+
+    all_pillars = [pillar]
+
     while running:
-        if bird.y <= death_y:
+        if bird.y <= floor_y:
             for event in pygame.event.get():
                 event_handler(event, bird)
 
-            bird.falling()
+            last_pillar = all_pillars[-1]
 
-        render(screen, background_img_loaded, bg_flipped)
-        bird.render(screen)
+            if last_pillar.x < screen_width:
+                pillar_height = random.randint(100, 500)
+                new_pillar = Pillar(last_pillar.x + pillar_gap_x, pillar_start_y,
+                                    pillar_width, pillar_height, pillar_velocity_x)
+
+                all_pillars.append(new_pillar)
+
+            bird.falling()
+            for pillar in all_pillars:
+                pillar.update_position()
+
+        render(screen, background_img_loaded, bg_flipped,
+               all_pillars, bird, pillar_gap_y, floor_y)
+
         pygame.display.update()
 
 
@@ -54,10 +82,16 @@ def event_handler(event, bird):
             bird.up()
 
 
-def render(screen, background_img_loaded, bg_flipped):
+def render(screen, background_img_loaded, bg_flipped, all_pillars, bird, pillar_gap_y, floor_y):
+
     screen.blit(background_img_loaded, (0, 0))
     screen.blit(bg_flipped,
                 (background_img_loaded.get_width(), 0))
+
+    for pillar in all_pillars:
+        pillar.render(screen, pillar_gap_y, floor_y)
+
+    bird.render(screen)
 
 
 if __name__ == "__main__":
