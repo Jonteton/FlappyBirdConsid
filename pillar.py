@@ -5,19 +5,27 @@ import pygame
 
 
 class Pillar:
-    def __init__(self, x, y, width, height, velocity_x,):
+    def __init__(self, x, y, width, height, pillar_gap_y, ground_y, velocity_x):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
+
+        # Values used to create the second pillar below the first one
+        self.x2 = self.x
+        self.y2 = self.height + pillar_gap_y
+
+        self.height2 = ground_y - self.y2
+        print(f"{ground_y} - {self.height} + {pillar_gap_y} ")
+
         self.velocity_x = velocity_x
 
-    def render(self, screen, pillar_gap_y, floor_y):
+    def render(self, screen):
         pygame.draw.rect(screen, color="black", rect=(
             self.x, self.y, self.width, self.height))
 
         pygame.draw.rect(screen, color="black", rect=(
-            self.x, self.height + pillar_gap_y, self.width, floor_y - self.height - pillar_gap_y + 45))
+            self.x, self.y2, self.width, self.height2))
 
-    def update_position(self):
-        self.x = self.x - self.velocity_x
+    def update_position(self, dt):
+        self.x = self.x - self.velocity_x * dt/1000

@@ -1,97 +1,152 @@
 import pygame
 import random
+
 from bird import Bird
 from pillar import Pillar
 
 pygame.init()
 
-BIRD_IMG = "./assets/frame-11.png"
-BACKGROUND_IMG = "./assets/background.png"
+BIRD_PATH = "./assets/frame-11.png"
+BG_PATH = "./assets/goodcopybg.png"
+
+BIRD_IMG = pygame.image.load(BIRD_PATH)
+BG_IMG = pygame.image.load(BG_PATH)
+
+SCREEN_WIDTH = BG_IMG.get_width() * 2
+
+SCREEN = pygame.display.set_mode([SCREEN_WIDTH, BG_IMG.get_height()])
 
 running = True
 
 
 def main():
-
+    global running
     bird_start_x = 200
     bird_start_y = 450
 
-    floor_y = 595
-    pillar_start_x = bird_start_x + 250
+    ground_y = 790
+
+    # --------- Pillar values -------
+    pillar_start_x = bird_start_x + 700
     pillar_start_y = 0
     pillar_width = 50
     pillar_height = 75
-    pillar_velocity_x = 0.4
+    pillar_velocity_x = 70
+    pillar_gap_x = 400
+    pillar_gap_y = 150
 
-    pillar_gap_x = 250
-    pillar_gap_y = 100
+    # Used to track FPS
+    FPSCLOCK = pygame.time.Clock()
+    FPS = 60
 
-    bird_img_loaded, background_img_loaded = load_resources()
-    screen_width = background_img_loaded.get_width() * 2
+    # Creates the first pillar and bird objects
+    bird = Bird(bird_start_x, bird_start_y, BIRD_IMG)
+    first_pillar = Pillar(pillar_start_x, pillar_start_y,
+                          pillar_width, pillar_height, pillar_gap_y, ground_y, pillar_velocity_x)
 
-    bg_flipped = pygame.transform.flip(
-        background_img_loaded, True, False)
-    screen = pygame.display.set_mode(
-        [screen_width, background_img_loaded.get_height()])
-
-    bird = Bird(bird_start_x, bird_start_y, bird_img_loaded)
-
-    pillar = Pillar(pillar_start_x, pillar_start_y,
-                    pillar_width, pillar_height, pillar_velocity_x)
-
-    all_pillars = [pillar]
+    all_pillars = [first_pillar]
 
     while running:
-        if bird.y <= floor_y:
+        # Game Loop, Runs for each frame
+
+        dt = FPSCLOCK.tick(FPS)
+
+        if not game_over(bird, all_pillars, ground_y, pillar_width):
+            # Game continues running
+
             for event in pygame.event.get():
-                event_handler(event, bird)
+                event_handler(event, bird, dt)
 
-            last_pillar = all_pillars[-1]
+            all_pillars = generate_pillars(all_pillars, pillar_gap_x,
+                                           pillar_start_y, pillar_width, pillar_gap_y, ground_y, pillar_velocity_x)
 
-            if last_pillar.x < screen_width:
-                pillar_height = random.randint(100, 500)
-                new_pillar = Pillar(last_pillar.x + pillar_gap_x, pillar_start_y,
-                                    pillar_width, pillar_height, pillar_velocity_x)
+            update_positions(bird, all_pillars, dt)
 
-                all_pillars.append(new_pillar)
+            render(BG_IMG, all_pillars, bird, pillar_gap_y, ground_y)
 
-            bird.falling()
-            for pillar in all_pillars:
-                pillar.update_position()
+            pygame.draw.rect(SCREEN, color="red",
+                             rect=(bird.x, bird.y, BIRD_IMG.get_width(), BIRD_IMG.get_height()), width=1)
 
-        render(screen, background_img_loaded, bg_flipped,
-               all_pillars, bird, pillar_gap_y, floor_y)
+            pygame.display.update()
 
-        pygame.display.update()
+        else:
+            running = False
 
 
-def load_resources():
-    bird_img_loaded = pygame.image.load(BIRD_IMG)
-    background_img_loaded = pygame.image.load(BACKGROUND_IMG)
+def game_over(bird, all_pillars, ground_y, pillar_width):
+    """Checks whether any losing conditions are met"""
 
-    return bird_img_loaded, background_img_loaded
+    if bird_collided(bird, all_pillars, pillar_width):
+        return True
+
+    if bird.y + BIRD_IMG.get_height() <= ground_y:
+        # Bird is above ground, still alive
+        return False
+    elif bird.y + BIRD_IMG.get_height() > ground_y:
+        # Bird has touched ground, game over
+        return True
 
 
-def event_handler(event, bird):
+def bird_collided(bird, all_pillars, pillar_width):
+    """Checks whether bird has collided with a pipe/pillar"""
+
+    bird_tip = bird.x + BIRD_IMG.get_width()
+
+    next_pillar = next(
+        pillar for pillar in all_pillars if bird_tip < pillar.x + pillar_width)
+
+    if bird_tip > next_pillar.x and bird_tip < next_pillar.x + pillar_width:
+        pass
+        # Within the x coordinate of nearest pillar, collision possible
+
+
+def generate_pillars(all_pillars, pillar_gap_x, pillar_start_y, pillar_width, pillar_gap_y, ground_y, pillar_velocity_x):
+    """Creates the pillars"""
+
+    last_pillar = all_pillars[-1]
+
+    if last_pillar.x < SCREEN_WIDTH:
+        pillar_height = random.randint(100, 300)
+
+        new_pillar = Pillar(last_pillar.x + pillar_gap_x, pillar_start_y,
+                            pillar_width, pillar_height, pillar_gap_y, ground_y, pillar_velocity_x)
+
+        all_pillars.append(new_pillar)
+
+    return all_pillars
+
+
+def update_positions(bird, all_pillars, dt):
+
+    bird.falling(dt)
+    bird.update_center_point()
+
+    for pillar in all_pillars:
+        pillar.update_position(dt)
+
+
+def event_handler(event, bird, dt):
+    """ Handles events that occur in the game """
     global running
     if event.type == pygame.QUIT:
         running = False
 
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_SPACE:
-            bird.up()
+            bird.up(dt)
 
 
-def render(screen, background_img_loaded, bg_flipped, all_pillars, bird, pillar_gap_y, floor_y):
+def render(BG_IMG, all_pillars, bird, pillar_gap_y, floor_y):
+    """Draws items onto the SCREEN"""
 
-    screen.blit(background_img_loaded, (0, 0))
-    screen.blit(bg_flipped,
-                (background_img_loaded.get_width(), 0))
+    SCREEN.blit(BG_IMG, (0, 0))
+    SCREEN.blit(BG_IMG,
+                (BG_IMG.get_width(), 0))
 
     for pillar in all_pillars:
-        pillar.render(screen, pillar_gap_y, floor_y)
+        pillar.render(SCREEN)
 
-    bird.render(screen)
+    bird.render(SCREEN)
 
 
 if __name__ == "__main__":
