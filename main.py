@@ -41,6 +41,7 @@ def main():
 
     # Creates the first pillar and bird objects
     bird = Bird(bird_start_x, bird_start_y, BIRD_IMG)
+
     first_pillar = Pillar(pillar_start_x, pillar_start_y,
                           pillar_width, pillar_height, pillar_gap_y, ground_y, pillar_velocity_x)
 
@@ -106,7 +107,7 @@ def generate_pillars(all_pillars, pillar_gap_x, pillar_start_y, pillar_width, pi
     last_pillar = all_pillars[-1]
 
     if last_pillar.x < SCREEN_WIDTH:
-        pillar_height = random.randint(100, 300)
+        pillar_height = random.randint(125, 450)
 
         new_pillar = Pillar(last_pillar.x + pillar_gap_x, pillar_start_y,
                             pillar_width, pillar_height, pillar_gap_y, ground_y, pillar_velocity_x)
@@ -117,6 +118,7 @@ def generate_pillars(all_pillars, pillar_gap_x, pillar_start_y, pillar_width, pi
 
 
 def update_positions(bird, all_pillars, dt):
+    """ Updates positions of the bird and pillars"""
 
     bird.falling(dt)
     bird.update_center_point()
@@ -127,6 +129,7 @@ def update_positions(bird, all_pillars, dt):
 
 def event_handler(event, bird, dt):
     """ Handles events that occur in the game """
+
     global running
     if event.type == pygame.QUIT:
         running = False
