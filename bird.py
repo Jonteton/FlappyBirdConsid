@@ -15,11 +15,11 @@ class Bird:
         screen.blit(self.img, (self.x, self.y))
 
     def up(self, dt):
-        self.velocity -= 30 * dt/1000
+        self.velocity -= 30 * dt / 100
         self.y = self.y + self.velocity
 
     def falling(self, dt):
-        self.velocity += 0 * dt/1000
+        self.velocity += 1 * dt / 100
         self.y = self.y + self.velocity
 
     def update_center_point(self):

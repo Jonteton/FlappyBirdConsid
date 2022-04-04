@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 from bird import Bird
 from pillar import Pillar
@@ -17,7 +18,7 @@ SCREEN_WIDTH = BG_IMG.get_width() * 2
 SCREEN = pygame.display.set_mode([SCREEN_WIDTH, BG_IMG.get_height()])
 
 running = True
-
+startTime = time.time()
 
 def main():
     global running
@@ -34,6 +35,7 @@ def main():
     pillar_velocity_x = 70
     pillar_gap_x = 400
     pillar_gap_y = 150
+
 
     # Used to track FPS
     FPSCLOCK = pygame.time.Clock()
@@ -122,7 +124,7 @@ def update_positions(bird, all_pillars, dt):
     bird.update_center_point()
 
     for pillar in all_pillars:
-        pillar.update_position(dt)
+        pillar.update_position(startTime)
 
 
 def event_handler(event, bird, dt):

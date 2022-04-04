@@ -1,5 +1,6 @@
 from turtle import width
-
+import time
+import math
 
 import pygame
 
@@ -27,5 +28,6 @@ class Pillar:
         pygame.draw.rect(screen, color="black", rect=(
             self.x, self.y2, self.width, self.height2))
 
-    def update_position(self, dt):
-        self.x = self.x - self.velocity_x * dt/1000
+    def update_position(self, startTime):
+        now = time.time()
+        self.x = self.x - self.velocity_x * (50 + now - startTime) / 750
