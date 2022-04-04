@@ -6,7 +6,8 @@ from bird import Bird
 from pillar import Pillar
 
 pygame.init()
-
+pygame.font.init()
+FONT = pygame.font.SysFont('Comic Sans MS', 30)
 BIRD_PATH = "./assets/frame-11.png"
 BG_PATH = "./assets/goodcopybg.png"
 
@@ -19,6 +20,7 @@ SCREEN = pygame.display.set_mode([SCREEN_WIDTH, BG_IMG.get_height()])
 
 running = True
 startTime = time.time()
+
 
 def main():
     global running
@@ -35,7 +37,6 @@ def main():
     pillar_velocity_x = 70
     pillar_gap_x = 400
     pillar_gap_y = 150
-
 
     # Used to track FPS
     FPSCLOCK = pygame.time.Clock()
@@ -94,13 +95,18 @@ def bird_collided(bird, all_pillars, pillar_width):
     """Checks whether bird has collided with a pipe/pillar"""
 
     bird_tip = bird.x + BIRD_IMG.get_width()
+    bird_bottom = bird.y + BIRD_IMG.get_height() - 10
+    bird_top = bird.y + 5
 
     next_pillar = next(
-        pillar for pillar in all_pillars if bird_tip < pillar.x + pillar_width)
+        pillar for pillar in all_pillars if bird_tip < pillar.x + pillar_width + BIRD_IMG.get_width())
 
-    if bird_tip > next_pillar.x and bird_tip < next_pillar.x + pillar_width:
-        pass
+    if bird_tip > next_pillar.x:
         # Within the x coordinate of nearest pillar, collision possible
+
+        if bird_top < next_pillar.height or bird_bottom > next_pillar.y2:
+            # Bird within hitbox in y axis
+            return True
 
 
 def generate_pillars(all_pillars, pillar_gap_x, pillar_start_y, pillar_width, pillar_gap_y, ground_y, pillar_velocity_x):

@@ -17,7 +17,6 @@ class Pillar:
         self.y2 = self.height + pillar_gap_y
 
         self.height2 = ground_y - self.y2
-        print(f"{ground_y} - {self.height} + {pillar_gap_y} ")
 
         self.velocity_x = velocity_x
 
