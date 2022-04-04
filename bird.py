@@ -25,3 +25,7 @@ class Bird:
     def update_center_point(self):
         self.center_x = self.x + self.img.get_width() / 2
         self.center_y = self.y + self.img.get_height() / 2
+
+    def freeze(self):
+        self.velocity = 0
+        self.velocity_x = 0

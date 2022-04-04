@@ -30,3 +30,6 @@ class Pillar:
     def update_position(self, startTime):
         now = time.time()
         self.x = self.x - self.velocity_x * (50 + now - startTime) / 750
+
+    def freeze(self):
+        self.velocity_x = 0

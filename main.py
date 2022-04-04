@@ -8,6 +8,7 @@ from pillar import Pillar
 pygame.init()
 pygame.font.init()
 FONT = pygame.font.SysFont('Comic Sans MS', 30)
+FONT_BIG = pygame.font.SysFont('Comic Sans MS', 100)
 BIRD_PATH = "./assets/frame-11.png"
 BG_PATH = "./assets/goodcopybg.png"
 
@@ -38,6 +39,8 @@ def main():
     pillar_gap_x = 400
     pillar_gap_y = 150
 
+    winning_score = 10
+
     # Used to track FPS
     FPSCLOCK = pygame.time.Clock()
     FPS = 60
@@ -64,12 +67,17 @@ def main():
             all_pillars = generate_pillars(all_pillars, pillar_gap_x,
                                            pillar_start_y, pillar_width, pillar_gap_y, ground_y, pillar_velocity_x)
 
-            update_positions(bird, all_pillars, dt)
+            score = sum([1 if p.x + p.width < bird.x else 0 for p in all_pillars])
 
-            render(BG_IMG, all_pillars, bird, pillar_gap_y, ground_y)
+            if score >= winning_score:
+                freeze(all_pillars, bird)
+                render_win()
+            else:
+                update_positions(bird, all_pillars, dt)
+                render(BG_IMG, all_pillars, bird, pillar_gap_y, ground_y, score)
+                pygame.draw.rect(SCREEN, color="red",
+                                rect=(bird.x, bird.y, BIRD_IMG.get_width(), BIRD_IMG.get_height()), width=1)
 
-            pygame.draw.rect(SCREEN, color="red",
-                             rect=(bird.x, bird.y, BIRD_IMG.get_width(), BIRD_IMG.get_height()), width=1)
 
             pygame.display.update()
 
@@ -146,8 +154,23 @@ def event_handler(event, bird, dt):
         if event.key == pygame.K_SPACE:
             bird.up(dt)
 
+def render_win():
+    """Show big white rectangle on win"""
+    
+    pygame.draw.rect(SCREEN, color="cyan",
+                        rect=(0, 0, SCREEN.get_width(), SCREEN.get_height()))
+    SCREEN.blit(FONT_BIG.render("Testerna gick igenom!", False, (255, 0, 0)), (40, 40))
+    SCREEN.blit(FONT_BIG.render("Företaget är räddat!", False, (255, 0, 0)), (40, 300))
+    SCREEN.blit(FONT_BIG.render("Ord 2: stora", False, (255, 0, 0)), (40, 500))
 
-def render(BG_IMG, all_pillars, bird, pillar_gap_y, floor_y):
+def freeze(all_pillars, bird):
+    """Freeze bird and pillars"""
+    for pillar in all_pillars:
+        pillar.freeze()
+
+    bird.freeze()
+
+def render(BG_IMG, all_pillars, bird, pillar_gap_y, floor_y, score):
     """Draws items onto the SCREEN"""
 
     SCREEN.blit(BG_IMG, (0, 0))
@@ -158,6 +181,11 @@ def render(BG_IMG, all_pillars, bird, pillar_gap_y, floor_y):
         pillar.render(SCREEN)
 
     bird.render(SCREEN)
+
+    # Score
+    pygame.draw.rect(SCREEN, color="white", rect=(10, 10, 70, 70), border_radius=10)
+    text = FONT.render(str(score), False, (0, 0, 0))
+    SCREEN.blit(text, (20, 20))
 
 
 if __name__ == "__main__":
